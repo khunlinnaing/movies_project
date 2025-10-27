@@ -4,3 +4,7 @@ coverage
 pytest 
 pytest-django
 Pillow
+django-allauth
+requests
+pyjwt
+cryptography
