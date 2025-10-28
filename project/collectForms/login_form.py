@@ -19,3 +19,4 @@ class LoginForm(AuthenticationForm):
             'placeholder': 'Enter your password',
         })
     )
+

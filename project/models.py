@@ -16,8 +16,12 @@ class UserInfo(models.Model):
 
 # --- Automatically create or update UserInfo when a User is saved ---
 @receiver(post_save, sender=User)
-def create_or_update_user_info(sender, instance, created, **kwargs):
+def create_or_update_userinfo(sender, instance, created, **kwargs):
     if created:
         UserInfo.objects.create(user=instance)
     else:
         instance.info.save()
+        # try:
+        # except UserInfo.DoesNotExist:
+        #     UserInfo.objects.create(user=instance)
+
