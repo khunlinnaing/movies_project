@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from project.collectForms.login_form import LoginForm
 from project.collectForms.signup_forms import SignupForm
-
+from project.collectForms.categories_forms import CategoryForm
 
 def index(request):
     """
@@ -66,3 +66,13 @@ def signup_view(request):
         form = SignupForm()
 
     return render(request, 'auth/register.html', {'form': form})
+
+def category_view(request):
+    
+    return render(request, 'dashboard/category/lists.html')
+
+def create_category_view(request):
+    if request.method == "POST":
+        pass
+    else:
+        form = CategoryForm()
