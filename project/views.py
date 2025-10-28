@@ -1,7 +1,8 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from project.collectForms.login_form import LoginForm
+from project.collectForms.signup_forms import SignupForm
 
 
 def index(request):
@@ -44,3 +45,24 @@ def login_view_post(request):
 
     messages.error(request, "Invalid username/email or password.")
     return redirect('website:login-view-get')
+
+def logout_view(request):
+    logout(request)
+    return redirect('website:index-view')
+
+def signup_view(request):
+    """
+    Handles user registration (account + profile info).
+    """
+    if request.method == 'POST':
+        form = SignupForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Account created successfully! You can now log in.")
+            return redirect('website:login-view-get')
+        else:
+            messages.error(request, "⚠️ Please correct the errors below.")
+    else:
+        form = SignupForm()
+
+    return render(request, 'auth/register.html', {'form': form})
