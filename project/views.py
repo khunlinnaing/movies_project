@@ -1,9 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.contrib import messages
 from project.collectForms.login_form import LoginForm
 from project.collectForms.signup_forms import SignupForm
 from project.collectForms.categories_forms import CategoryForm
+from project.models import Category
 
 def index(request):
     """
@@ -68,11 +70,20 @@ def signup_view(request):
     return render(request, 'auth/register.html', {'form': form})
 
 def category_view(request):
-    
-    return render(request, 'dashboard/category/lists.html')
+    categories= Category.objects.all()
+    paginator = Paginator(categories, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'dashboard/category/lists.html', {"category_objects": page_obj})
 
 def create_category_view(request):
     if request.method == "POST":
-        pass
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Create category is success')
+            return redirect('website:category-view')
     else:
         form = CategoryForm()
+    
+    return render(request, 'dashboard/category/add.html',{"form": form})

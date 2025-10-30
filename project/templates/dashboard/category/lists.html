@@ -1,4 +1,37 @@
 {% extends 'base.html' %}
+{% load pagination_tags %}
 {% block content %}
-<Center>Categories</Center>
+<main class="container">
+    <h2>Category List</h2>
+    <div class="card p-4 my-2 border">
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'website:create-category-view' %}" class="btn btn-primary"><i class="bi bi-plus mx-1"></i>add new</a>
+        </div>
+        <table class="table table-striped">
+            <thead>
+                <th>No</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Actions</th>
+            </thead>
+            <tbody>
+                {% for category in category_objects %}
+                <tr>
+                    <td>{{ forloop.counter0|add:category_objects.start_index }}</td>
+                    <td>{{category.name}}</td>
+                    <td>{{category.slug}}</td>
+                    <td class="d-flex justify-content-end">
+                        <a href="" class="btn btn-success mx-2"><i class="bi bi-pencil mx-1"></i>Edit</a>
+                        <a href="" class="btn btn-danger"><i class="bi bi-trash mx-1"></i>Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="card-footer bg-white text-end">
+            {% render_pagination category_objects %}
+        </div>
+    </div>
+</main>
 {% endblock %}
