@@ -9,4 +9,6 @@ urlpatterns = [
     path('signup', views.signup_view, name="signup-view"),
     path('categor', views.category_view, name="category-view"),
     path('categor/create', views.create_category_view, name="create-category-view"),
+    path('categor/<int:pk>/edit', views.edit_category_view, name="edit-category-view"),
+    path('categor/<int:pk>/delete', views.delete_category_view, name="delete-category-view"),
 ]

@@ -7,6 +7,14 @@
         <div class="d-flex justify-content-end">
             <a href="{% url 'website:create-category-view' %}" class="btn btn-primary"><i class="bi bi-plus mx-1"></i>add new</a>
         </div>
+        {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
         <table class="table table-striped">
             <thead>
                 <th>No</th>
@@ -21,8 +29,8 @@
                     <td>{{category.name}}</td>
                     <td>{{category.slug}}</td>
                     <td class="d-flex justify-content-end">
-                        <a href="" class="btn btn-success mx-2"><i class="bi bi-pencil mx-1"></i>Edit</a>
-                        <a href="" class="btn btn-danger"><i class="bi bi-trash mx-1"></i>Delete</a>
+                        <a href="{% url 'website:edit-category-view' category.id %}" class="btn btn-success mx-2"><i class="bi bi-pencil mx-1"></i>Edit</a>
+                        <a href="{% url 'website:delete-category-view' category.id %}" class="btn btn-danger"><i class="bi bi-trash mx-1"></i>Delete</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -87,3 +87,37 @@ def create_category_view(request):
         form = CategoryForm()
     
     return render(request, 'dashboard/category/add.html',{"form": form})
+
+def edit_category_view(request, pk):
+    try:
+        category = Category.objects.get(pk=pk)
+        if category:
+            form = CategoryForm(request.POST, instance=category)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Update is success')
+                return redirect('website:category-view')
+            else:
+                form = CategoryForm(instance=category)
+                return render(request, 'dashboard/category/edit.html', {'form': form})
+
+        else:
+            messages.error(request, 'Category id is not found.')
+            return redirect('website:category-view')
+    except Exception as e:
+        messages.error(request, 'Server error')
+        return redirect('website:category-view')
+
+def delete_category_view(request, pk):
+    try:
+        category = Category.objects.get(pk=pk)
+        if category:
+            category.delete()
+            messages.success(request, 'Delete is success')
+            return redirect('website:category-view')
+        else:
+            messages.error(request, 'Category id is not found.')
+            return redirect('website:category-view')
+    except Exception as e:
+        messages.error(request, 'Server error')
+        return redirect('website:category-view')
