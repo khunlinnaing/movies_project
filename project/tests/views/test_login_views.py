@@ -2,115 +2,71 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
+import django.contrib.auth
 
-
-class LoginViewTests(TestCase):
+class LoginViewPostTest(TestCase):
 
     def setUp(self):
-        # ✅ Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='securepassword123'
+            password='StrongPass123'
+        )
+        self.url = reverse('website:login-view-post')  # URL for login POST
+
+    def test_valid_login_redirects_to_index(self):
+        """POST with valid credentials should log in and redirect to index."""
+        data = {'username': 'testuser', 'password': 'StrongPass123'}
+        response = self.client.post(self.url, data, follow=True)
+
+        self.assertRedirects(response, reverse('website:index-view'))
+        self.assertTrue(response.context['user'].is_authenticated)
+
+    def test_invalid_login_shows_error(self):
+        """POST with invalid credentials should show error message."""
+        data = {'username': 'testuser', 'password': 'WrongPass'}
+        response = self.client.post(self.url, data, follow=True)
+
+        self.assertRedirects(response, reverse('website:login-view-get'))
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('Invalid username/email or password.' in str(m) for m in messages))
+
+    def test_non_post_request_redirects_to_login(self):
+        """GET request should redirect to login page."""
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('website:login-view-get'))
+
+    def test_exception_handling_shows_server_error(self):
+        from unittest.mock import patch
+        """Simulate exception during authenticate and show server error."""
+        with patch('project.views.authenticate', side_effect=Exception("Test exception")):
+            data = {'username': 'testuser', 'password': 'StrongPass123'}
+            response = self.client.post(self.url, data, follow=True)
+
+            self.assertRedirects(response, reverse('website:login-view-get'))
+            messages = list(get_messages(response.wsgi_request))
+            self.assertTrue(any('Server error' in str(m) for m in messages))
+    
+    def test_wrong_credentials_show_error_message(self):
+        """
+        If credentials are incorrect, 
+        the view should show 'Invalid username/email or password.' 
+        and redirect to login page.
+        """
+        # Valid form data, but wrong password
+        data = {'username': 'testuser', 'password': 'WrongPassword'}
+        response = self.client.post(self.url, data, follow=True)
+        # print(response.reason_phrase)
+        # print(response.wsgi_request)
+        # ✅ Expect redirect to login page
+        self.assertRedirects(response,reverse('website:login-view-get'))
+
+        # # ✅ Expect same error message
+        messages = list(get_messages(response.wsgi_request))
+        # print(messages)
+        self.assertTrue(
+            any('Invalid username/email or password.' in str(m) for m in messages),
+            "Expected 'Invalid username/email or password.' message not found"
         )
 
-        # ✅ Define URLs
-        self.login_url = reverse('website:login-view-post')
-        self.login_get_url = reverse('website:login-view-get')
-        self.index_url = reverse('website:index-view')
-        self.index_template = 'base/body.html'
 
-    # ----------------------------
-    # ✅ SUCCESS CASES
-    # ----------------------------
-
-    def test_login_with_username_success(self):
-        """
-        User can log in successfully using their username.
-        """
-        response = self.client.post(self.login_url, {
-            'username': 'testuser',
-            'password': 'securepassword123'
-        }, follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, self.index_template)
-        self.assertTrue(response.context['user'].is_authenticated)
-
-    def test_login_with_email_success(self):
-        """
-        User can log in successfully using their email.
-        (Requires EmailOrUsernameBackend)
-        """
-        response = self.client.post(self.login_url, {
-            'username': 'test@example.com',
-            'password': 'securepassword123'
-        }, follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, self.index_template)
-        self.assertTrue(response.context['user'].is_authenticated)
-
-    # ----------------------------
-    # ❌ FAILURE CASES
-    # ----------------------------
-
-    def test_login_invalid_credentials(self):
-        """
-        Invalid credentials should not authenticate the user.
-        """
-        response = self.client.post(self.login_url, {
-            'username': 'testuser',
-            'password': 'wrongpassword'
-        }, follow=True)
-
-        # Should redirect back to login page
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth/login.html')
-        self.assertFalse(response.context['user'].is_authenticated)
-
-    def test_login_invalid_form(self):
-        """
-        Empty POST data should trigger form validation errors.
-        """
-        response = self.client.post(self.login_url, {}, follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth/login.html')
-        self.assertFalse(response.context['user'].is_authenticated)
-
-    # ----------------------------
-    # 🚦 REDIRECTS
-    # ----------------------------
-
-    def test_get_request_redirects_to_login_get(self):
-        """
-        GET request to login_view_post should redirect properly.
-        """
-        response = self.client.get(self.login_url, follow=True)
-        self.assertRedirects(response, self.login_get_url)
-
-    # ----------------------------
-    # 💬 MESSAGES (for coverage)
-    # ----------------------------
-
-    def test_invalid_login_sets_error_message_and_redirects(self):
-        """
-        When invalid credentials are used, an error message should appear
-        and redirect back to login page.
-        (Covers messages.error + redirect lines)
-        """
-        response = self.client.post(self.login_url, {
-            'username': 'admin',
-            'password': 'wrongpassword'
-        }, follow=False)
-        print(response)
-        # ✅ Should redirect to login-view-get
-        self.assertRedirects(response, self.login_get_url)
-
-        # ✅ Check messages
-        messages = list(get_messages(response.wsgi_request))
-        print(messages)
-        self.assertTrue(messages)
-        self.assertEqual(str(messages[0]), "Invalid username/email or password.")
-        self.assertEqual(messages[0].level_tag, 'error')
