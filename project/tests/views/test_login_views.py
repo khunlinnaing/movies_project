@@ -68,5 +68,40 @@ class LoginViewPostTest(TestCase):
             any('Invalid username/email or password.' in str(m) for m in messages),
             "Expected 'Invalid username/email or password.' message not found"
         )
+    
+    def test_login_with_email(self):
+        """User can log in using email instead of username."""
+        data = {'username': 'test@example.com', 'password': 'StrongPass123'}  # correct password
+        response = self.client.post(self.url, data, follow=True)
+
+        # Should redirect to index view on successful login
+        self.assertRedirects(response, reverse('website:index-view'))
+
+        # User should be authenticated
+        self.assertTrue(response.context['user'].is_authenticated)
+        self.assertEqual(response.context['user'].email, 'test@example.com')
+    
+    def test_login_with_email_invalid(self):
+        """
+        Login attempt using an invalid email should fail 
+        and show the 'Invalid username/email or password.' message.
+        """
+        data = {'username': 'test@example2.com', 'password': 'WrongPassword'}  # non-existent email
+        response = self.client.post(self.url, data, follow=True)
+
+        # Should redirect back to login page
+        self.assertRedirects(response, reverse('website:login-view-get'))
+
+        # Check that error message is displayed
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(
+            any('Invalid username/email or password.' in str(m) for m in messages),
+            "Expected 'Invalid username/email or password.' message not found"
+        )
+
+        # Ensure user is not authenticated
+        self.assertFalse(response.context['user'].is_authenticated)
+
+
 
 

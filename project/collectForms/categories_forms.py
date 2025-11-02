@@ -16,8 +16,8 @@ class CategoryForm(forms.ModelForm):
             }),
         }
 
-    def clean_name(self):
-        name = self.cleaned_data.get('name').strip()
-        if not name:
-            raise forms.ValidationError("Category name cannot be empty.")
-        return name
+    # def clean_name(self):
+    #     name = self.cleaned_data.get('name').strip()
+    #     if not name:
+    #         raise forms.ValidationError("Category name cannot be empty.")
+    #     return name
